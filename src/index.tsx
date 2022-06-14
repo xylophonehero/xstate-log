@@ -1,7 +1,7 @@
 import "./styles.css";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import { createMachine, assign, actions } from "xstate";
+import { createMachine, assign, actions, EventObject } from "xstate";
 import { useMachine } from "@xstate/react";
 const {log} = actions
 
@@ -21,21 +21,27 @@ const toggleMachine = createMachine({
   },
   states: {
     inactive: {
+      entry: 'log',
       on: { 
         TOGGLE: {
-          actions: log((ctx, e)=> ctx.count),
+          actions: log<ToggleContext, EventObject>((ctx)=> ctx.count),
           target:"active" 
         }
       }
     },
     active: {
-      entry: 'setCount',
-      on: { TOGGLE: "inactive" }
+      entry: assign({ count: (ctx) => ctx.count + 1 }),
+      on: { 
+        TOGGLE: {
+          actions: log((ctx)=> ctx.count),
+          target:"inactive"
+        }
+      }
     }
   }
 }, {
   actions: {
-    setCount: assign({ count: (ctx) => ctx.count + 1 }),
+    log: log((ctx)=> ctx.count),
   }
 });
 
