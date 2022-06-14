@@ -1,14 +1,19 @@
 import "./styles.css";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import { createMachine, assign } from "xstate";
+import { createMachine, assign, actions } from "xstate";
 import { useMachine } from "@xstate/react";
+const {log} = actions
 
 interface ToggleContext {
   count: number;
 }
 
-const toggleMachine = createMachine<ToggleContext>({
+const toggleMachine = createMachine({
+  tsTypes: {} as import("./index.typegen").Typegen0,
+  schema: {
+    context: {} as ToggleContext
+  },
   id: "toggle",
   initial: "inactive",
   context: {
@@ -16,12 +21,21 @@ const toggleMachine = createMachine<ToggleContext>({
   },
   states: {
     inactive: {
-      on: { TOGGLE: "active" }
+      on: { 
+        TOGGLE: {
+          actions: log((ctx, e)=> ctx.count),
+          target:"active" 
+        }
+      }
     },
     active: {
-      entry: assign({ count: (ctx) => ctx.count + 1 }),
+      entry: 'setCount',
       on: { TOGGLE: "inactive" }
     }
+  }
+}, {
+  actions: {
+    setCount: assign({ count: (ctx) => ctx.count + 1 }),
   }
 });
 
